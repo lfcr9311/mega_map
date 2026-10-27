@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python3 -m fmsnav_export --help)",
+      "Bash(zip -q -r ../../FMS_ciclo.zip *.S01)",
+      "Bash(python3 -m fmsnav_export ../FMS_ciclo.zip --cycle 2607 --out ./out --html-name planejador.html)",
+      "Bash(python3 -m fmsnav_export /home/luisrossi/Documents/Azul/conras/FMS_ciclo.zip --cycle 2607 --out ./out --html-name planejador.html)",
+      "Bash(python3 -m fmsnav_export /home/luisrossi/Documents/Azul/conras/FMS_3392/FMS_ciclo.zip --cycle 2607 --out ./out --html-name planejador.html)",
+      "Read(//home/documents/azul/**)",
+      "Read(//home/luisrossi/documents/azul/**)",
+      "Bash(find /home -name \"rpl_back\" -type d 2>/dev/null | head -5)",
+      "Read(//home/**)",
+      "Read(//home/luisrossi/Documents/Azul/rpl_back/**)",
+      "Bash(curl -s \"http://localhost:8000/api/notams?icaocode=SBKP&minutes=120\")",
+      "Bash(curl -s \"http://localhost:8000/api/fir/SBCW\")",
+      "Bash(python3 -m json.tool)",
+      "Bash(curl -s \"http://localhost:8000/api/special-areas\")",
+      "Read(//home/luisrossi/Documents/Azul/rpl_back/src/**)",
+      "Bash(curl \"http://localhost:8000/api/firs\")",
+      "Bash(curl -s \"http://localhost:8000/api/notams?icaocode=SBCW&minutes=120\")",
+      "Bash(curl -s \"http://localhost:8000/api/notams/health\")",
+      "Bash(curl -s \"http://localhost:8000/api/notams/refresh?minutes=60\")",
+      "Bash(rm /home/luisrossi/Documents/Azul/conras/fmsnav_export_9739/out/planejador.html)",
+      "Bash(python3 -c ' *)",
+      "Bash(node --check gen2.js)"
+    ],
+    "additionalDirectories": [
+      "/tmp/claude-1000/-home-luisrossi-Documents-Azul/conras/6f8d81ae-bb68-4f6c-8439-fe1da3c2fd6d/scratchpad"
+    ]
+  }
+}

@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FMSNAV Planejador</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <h1>fms<span>nav</span></h1>
+      <p>Planejador · ciclo <code id="cyc">—</code></p>
+    </div>
+
+    <form class="form" id="route-form" autocomplete="off">
+      <div class="field">
+        <label for="o">Origem</label>
+        <input id="o" type="text" placeholder="SBGR" spellcheck="false">
+        <div class="ac" id="aco"></div>
+      </div>
+      <button type="button" class="swap" id="swap" title="Inverter">⇅</button>
+      <div class="field">
+        <label for="d">Destino</label>
+        <input id="d" type="text" placeholder="SBBR" spellcheck="false">
+        <div class="ac" id="acd"></div>
+      </div>
+      <div class="field">
+        <label for="level">Aerovias</label>
+        <select class="proc" id="level">
+          <option value="">Todas</option>
+          <option value="H">Só alta (U…)</option>
+          <option value="L">Só baixa</option>
+        </select>
+      </div>
+      <button type="submit" class="go" id="go">Calcular rota</button>
+    </form>
+
+    <div class="msg err" id="err"></div>
+    <div class="msg warn" id="warn"></div>
+
+    <div class="res" id="res">
+      <div class="stats">
+        <div class="stat"><b id="s-km">—</b><span>Distância (km)</span></div>
+        <div class="stat"><b id="s-dir">—</b><span>vs ortodrômica</span></div>
+        <div class="stat"><b id="s-hop">—</b><span>Pernas</span></div>
+        <div class="stat"><b id="s-fix">—</b><span>Fixos</span></div>
+      </div>
+
+      <div id="rwy-select-box" hidden>
+        <h2>Selecione as pistas</h2>
+        <div class="rwy-select">
+          <div><h3>Saída</h3><div id="rwy-dep"></div></div>
+          <div><h3>Chegada</h3><div id="rwy-arr"></div></div>
+        </div>
+      </div>
+
+      <div id="sid-box" hidden>
+        <h2>SID · saída</h2>
+        <select class="proc" id="sid"></select>
+      </div>
+      <div id="star-box" hidden>
+        <h2>STAR · chegada</h2>
+        <select class="proc" id="star"></select>
+      </div>
+
+      <h2>Rota en-route</h2>
+      <table>
+        <thead><tr><th>De</th><th>Para</th><th>aerovia</th><th>alt</th><th class="num">km</th><th></th></tr></thead>
+        <tbody id="legs"></tbody>
+      </table>
+
+      <div id="rwy-box" hidden>
+        <h2>Pistas do destino</h2>
+        <div class="rwy" id="rwys"></div>
+      </div>
+    </div>
+
+    <div class="foot">
+      Dados lidos direto do banco binário do FMS.<br>
+      Rota en-route por aerovias publicadas; SID/STAR conforme o ciclo.
+    </div>
+  </aside>
+
+  <main class="chart">
+    <div id="map"></div>
+    <svg class="overlay" id="svg"></svg>
+    <div class="basemap">
+      <select id="tiles" aria-label="Mapa base"></select>
+    </div>
+    <div class="maptoggle">
+      <button type="button" id="lbl-toggle" aria-pressed="false" title="Mostrar nomes dos waypoints">nomes</button>
+    </div>
+    <div class="hint" id="hint">informe origem e destino</div>
+    <div class="legend" id="legend">
+      <span><i class="awy"></i>aerovia</span>
+      <span><i class="sid"></i>SID</span>
+      <span><i class="star"></i>STAR</span>
+    </div>
+  </main>
+</div>
+<script type="module" src="/src/main.ts"></script>
+</body>
+</html>

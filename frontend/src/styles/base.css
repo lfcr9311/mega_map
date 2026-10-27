@@ -1,0 +1,18 @@
+:root {
+  --deep: #07161f; --panel: #0d2430; --panel2: #123243; --line: #1d4557;
+  --ink: #dbe9f0; --muted: #7ba0b3; --dim: #4d7a8f;
+  --awy: #4fd1c5; --sid: #f6ad55; --star: #9f7aea; --hot: #ff6b5b; --dev: #ffb300;
+  --mono: 'JetBrains Mono', 'SF Mono', 'DejaVu Sans Mono', ui-monospace, Menlo, monospace;
+  --sans: 'Inter', 'Helvetica Neue', system-ui, -apple-system, sans-serif;
+}
+* { box-sizing: border-box }
+html, body { margin: 0; height: 100% }
+body {
+  background: var(--deep); color: var(--ink); font-family: var(--sans); font-size: 14px;
+  line-height: 1.5; -webkit-font-smoothing: antialiased;
+}
+button, input, select { font: inherit; color: inherit }
+[hidden] { display: none !important }
+
+.shell { display: grid; grid-template-columns: 355px 1fr; height: 100vh }
+@media (max-width: 960px) { .shell { grid-template-columns: 1fr; height: auto } }
