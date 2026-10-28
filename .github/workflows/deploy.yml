@@ -59,6 +59,16 @@ jobs:
           printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
           chmod 600 ~/.ssh/deploy_key
           printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # espaco ou quebra de linha colados junto com o secret
+          EC2_HOST=$(printf '%s' "$EC2_HOST" | tr -d '[:space:]')
+          EC2_USER=$(printf '%s' "$EC2_USER" | tr -d '[:space:]')
+          if ! ssh-keygen -F "$EC2_HOST" -f ~/.ssh/known_hosts | grep -q ssh-ed25519; then
+            echo "::error::EC2_KNOWN_HOSTS nao tem chave ssh-ed25519 para o EC2_HOST"
+            echo "EC2_HOST: ${#EC2_HOST} caracteres; tem '@': $([[ $EC2_HOST == *@* ]] && echo sim || echo nao); tem '://': $([[ $EC2_HOST == *://* ]] && echo sim || echo nao)"
+            echo "EC2_KNOWN_HOSTS: $(grep -c . ~/.ssh/known_hosts) linha(s); hosts e tipos de chave:"
+            awk 'NF && $1 !~ /^#/ {print "  " $1, $2}' ~/.ssh/known_hosts
+            exit 1
+          fi
           ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
               -o ServerAliveInterval=30 -o ConnectTimeout=20 \
               "$EC2_USER@$EC2_HOST" \

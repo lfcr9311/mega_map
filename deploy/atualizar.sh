@@ -28,6 +28,8 @@ git reset --quiet --hard "origin/$BRANCH"
 git log -1 --format='    commit %h: %s (%an, %ar)'
 
 passo "Reconstruindo e reiniciando o container"
+docker network inspect fortran_default >/dev/null 2>&1 \
+    || falha "A rede fortran_default nao existe: o ~/fortran (Caddy da porta 80) precisa estar no ar"
 docker compose up -d --build --remove-orphans
 docker image prune -f >/dev/null
 

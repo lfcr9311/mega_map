@@ -32,6 +32,6 @@ EC2     ?= ubuntu@ec2-3-137-219-87.us-east-2.compute.amazonaws.com
 EC2_KEY ?= ~/.ssh/ec2.pem
 
 deploy-data:        ## sobe o grafo para a EC2 (uma vez por ciclo; o Git nao leva dados)
-	ssh -i $(EC2_KEY) $(EC2) 'mkdir -p ~/mega_map/data/build'
-	scp -i $(EC2_KEY) data/build/navgraph.json.gz $(EC2):mega_map/data/build/navgraph.json.gz
-	ssh -i $(EC2_KEY) $(EC2) 'cd ~/mega_map && docker compose restart fmsnav 2>/dev/null || true'
+	ssh -i $(EC2_KEY) -o IdentitiesOnly=yes $(EC2) 'mkdir -p ~/mega_map/data/build'
+	scp -i $(EC2_KEY) -o IdentitiesOnly=yes data/build/navgraph.json.gz $(EC2):mega_map/data/build/navgraph.json.gz
+	ssh -i $(EC2_KEY) -o IdentitiesOnly=yes $(EC2) 'cd ~/mega_map && docker compose restart fmsnav 2>/dev/null || true'
