@@ -19,19 +19,19 @@ Pré-requisitos: Python ≥ 3.11 e Node ≥ 20.
 ```bash
 make install        # venv + npm install
 make data           # decodifica data/cycles/2607/FMS_ciclo.zip -> data/build/ (~50 s)
-make serve          # compila o frontend e sobe tudo em http://127.0.0.1:8001
+make serve          # compila o frontend e sobe tudo em http://127.0.0.1:8001/map/
 ```
 
 Desenvolvimento, em dois terminais:
 
 ```bash
 make api            # API com reload em :8001
-make web            # Vite em http://localhost:5173 (proxy /api -> :8001)
+make web            # Vite em http://localhost:5173/map/ (proxy /map/api -> :8001)
 ```
 
 Testes: `make test` (pytest + typecheck).
 
-Link direto para uma rota: `http://127.0.0.1:8001/?o=SBGR&d=SBBR` (`&level=H` só alta, `&level=L` só baixa).
+Link direto para uma rota: `http://127.0.0.1:8001/map/?o=SBGR&d=SBBR` (`&level=H` só alta, `&level=L` só baixa).
 
 Pelo terminal, sem servidor: `backend/.venv/bin/fmsnav route SBGR SBBR --rwy-dep 10 --rwy-arr 11 --sid auto --star auto --level H`.
 
@@ -46,7 +46,12 @@ Pelo terminal, sem servidor: `backend/.venv/bin/fmsnav route SBGR SBBR --rwy-dep
 | `FMSNAV_DEMO_NOTAMS` | `0` | `1` = usa 2 polígonos fictícios quando não há NOTAMs |
 | `FMSNAV_CORS_ORIGINS` | `http://localhost:5173` | |
 
-Documentação interativa da API: `http://127.0.0.1:8001/docs`.
+Documentação interativa da API: `http://127.0.0.1:8001/map/docs`.
+
+## Deploy
+
+Push no `master` publica em `http://ec2-3-137-219-87.us-east-2.compute.amazonaws.com/map/`
+(GitHub Actions). Configuração inicial e grafo: [deploy/README.md](deploy/README.md).
 
 ## Legado
 

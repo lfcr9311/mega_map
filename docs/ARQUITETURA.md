@@ -9,7 +9,7 @@
 │   └─ decode/   FmsDatabase           │   │    navgraph/  NavGraph (memória, ~1,5 s)  │
 │        └─ export/ extractors         │   │    routing/   A*, SID/STAR, desvio        │
 │             ├─ db/*.json             │   │    notams/    rpl_back (:8000) + cache    │
-│             └─ navgraph.json.gz ─────┼──►│    api/       /api/*  + frontend/dist em / │
+│             └─ navgraph.json.gz ─────┼──►│    api/   /map/api/* + frontend em /map/   │
 └──────────────────────────────────────┘   └───────────────▲──────────────────────────┘
                                                             │ JSON
                                            ┌────────────────┴──────────────────────────┐
@@ -50,6 +50,8 @@ Dependências apontam sempre para baixo: `api → routing/notams → navgraph �
 1. Resolve origem/destino; rota base por A* (nós em área de NOTAM custam ×10 000).
    Com `level` = `H`/`L`, o A* só anda por aerovias de alta/baixa — alta é todo designador
    que começa com `U` (`navgraph.airway_level`); conectores aeroporto↔malha valem sempre.
+   Aeródromos só entram como origem/destino: o A* nunca passa por outro aeródromo, e na
+   edição um ident de aeródromo no meio da rota resolve para o fixo homônimo ou dá 422.
 2. SID/STAR: chave explícita, `"auto"` ou nenhuma. Em `"auto"`, as opções são filtradas
    pela pista e a melhor combinação é a de menor distância total. Para não rodar um A* por
    par, roda um Dijkstra por fixo de saída distinto até todos os fixos de entrada.
@@ -61,17 +63,19 @@ Dependências apontam sempre para baixo: `api → routing/notams → navgraph �
 
 ### API
 
+Tudo fica sob `/map` (`api.app.BASE_PATH`): o frontend em `/map/`, a API em `/map/api`.
+
 | método | rota | |
 |---|---|---|
-| GET | `/api/meta` | ciclo, contagens |
-| GET | `/api/airports?q=` | autocomplete |
-| GET | `/api/airports/{icao}` | detalhe + pistas |
-| GET | `/api/airports/{icao}/procedures?kind=SID\|STAR&runway=` | opções |
-| GET | `/api/network?south&west&north&east&fixes=&level=` | malha visível (desenho) |
-| POST | `/api/route` | planejamento completo |
-| POST | `/api/route/annotate` | resolve uma rota editada (sem re-rotear) |
-| GET | `/api/notams` | áreas de NOTAM usadas no desvio |
-| GET | `/api/special-areas` | repasse do rpl_back |
+| GET | `/map/api/meta` | ciclo, contagens |
+| GET | `/map/api/airports?q=` | autocomplete |
+| GET | `/map/api/airports/{icao}` | detalhe + pistas |
+| GET | `/map/api/airports/{icao}/procedures?kind=SID\|STAR&runway=` | opções |
+| GET | `/map/api/network?south&west&north&east&fixes=&level=` | malha visível (desenho) |
+| POST | `/map/api/route` | planejamento completo |
+| POST | `/map/api/route/annotate` | resolve uma rota editada (sem re-rotear) |
+| GET | `/map/api/notams` | áreas de NOTAM usadas no desvio |
+| GET | `/map/api/special-areas` | repasse do rpl_back |
 
 Pontos são referenciados por `id` (nó do grafo), por `ident` (resolvido pelo mais próximo
 do ponto anterior) ou por `lat/lon` (ponto virtual). Os ids valem para o grafo carregado.

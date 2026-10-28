@@ -1,0 +1,76 @@
+# Deploy automatico: a cada push na master, roda os testes e entra no EC2 por
+# SSH para rodar deploy/atualizar.sh (git pull + docker compose up --build).
+# O app responde em http://<EC2>/map.
+# Configuracao (secrets, chave SSH, primeira instalacao): deploy/README.md.
+name: Deploy no EC2
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:          # botao "Run workflow" na aba Actions
+
+# um deploy por vez; um push durante o deploy espera o anterior terminar
+concurrency:
+  group: deploy-ec2-fmsnav
+  cancel-in-progress: false
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: backend/pyproject.toml
+      - name: Backend
+        run: |
+          pip install -e 'backend[dev]'
+          cd backend && pytest -q
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run typecheck
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Atualizar o servidor
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+          EC2_USER: ${{ secrets.EC2_USER }}
+          EC2_SSH_KEY: ${{ secrets.EC2_SSH_KEY }}
+          EC2_KNOWN_HOSTS: ${{ secrets.EC2_KNOWN_HOSTS }}
+        run: |
+          for v in EC2_HOST EC2_USER EC2_SSH_KEY EC2_KNOWN_HOSTS; do
+            [ -n "${!v}" ] || { echo "::error::Falta o secret $v (Settings > Secrets and variables > Actions)"; exit 1; }
+          done
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$EC2_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$EC2_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          ssh -i ~/.ssh/deploy_key -o StrictHostKeyChecking=yes \
+              -o ServerAliveInterval=30 -o ConnectTimeout=20 \
+              "$EC2_USER@$EC2_HOST" \
+              "DEPLOY_BRANCH='${{ github.ref_name }}' bash ~/mega_map/deploy/atualizar.sh"
+
+      - name: Conferir /map
+        env:
+          EC2_HOST: ${{ secrets.EC2_HOST }}
+        run: |
+          for _ in $(seq 1 10); do
+            curl -fsS "http://$EC2_HOST/map/api/health" && exit 0
+            sleep 3
+          done
+          echo "::error::http://$EC2_HOST/map/api/health nao respondeu (a porta 80 do EC2 repassa /map/* para 127.0.0.1:8001?)"
+          exit 1

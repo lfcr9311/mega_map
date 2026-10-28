@@ -4,6 +4,9 @@ A heuristica e a distancia great-circle ate o destino: limite inferior exato
 do custo, logo admissivel. Nos bloqueados (dentro de area restrita) nao sao
 proibidos, so ficam caros — assim sempre ha rota, e o desvio por coordenada
 (routing.avoidance) cuida do que ainda cruzar a area.
+
+Aerodromos nunca sao pontos intermediarios: os conectores terminais servem so
+para sair da origem e chegar ao destino, nao como atalho entre fixos.
 """
 from __future__ import annotations
 
@@ -34,7 +37,7 @@ def shortest_path(graph: NavGraph, src: int, dst: int,
     """`level` H/L restringe a aerovias de alta/baixa (conectores sempre valem)."""
     if src == dst:
         return PathResult([src], 0.0)
-    lats, lons, adj = graph.lats, graph.lons, graph.adj
+    lats, lons, adj, kinds = graph.lats, graph.lons, graph.adj, graph.kinds
     dlat, dlon = lats[dst], lons[dst]
 
     g: dict[int, float] = {src: 0.0}
@@ -50,7 +53,7 @@ def shortest_path(graph: NavGraph, src: int, dst: int,
             break
         gu = g[u]
         for v, km, lvl in adj[u]:
-            if not level_allows(level, lvl):
+            if not level_allows(level, lvl) or (kinds[v] == "A" and v != dst):
                 continue
             nd = gu + _edge_cost(km, v, blocked)
             if nd < g.get(v, float("inf")) - 1e-9:
@@ -81,7 +84,7 @@ def costs_from(graph: NavGraph, src: int, targets: Iterable[int],
     g: dict[int, float] = {src: 0.0}
     done: set[int] = set()
     heap = [(0.0, src)]
-    adj = graph.adj
+    adj, kinds = graph.adj, graph.kinds
     while heap and pending:
         d, u = heapq.heappop(heap)
         if u in done:
@@ -91,7 +94,7 @@ def costs_from(graph: NavGraph, src: int, targets: Iterable[int],
             out[u] = d
             pending.discard(u)
         for v, km, lvl in adj[u]:
-            if not level_allows(level, lvl):
+            if not level_allows(level, lvl) or (kinds[v] == "A" and v not in pending):
                 continue
             nd = d + _edge_cost(km, v, blocked)
             if nd < g.get(v, float("inf")) - 1e-9:

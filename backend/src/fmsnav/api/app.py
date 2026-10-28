@@ -1,6 +1,8 @@
-"""Aplicacao FastAPI: carrega o grafo uma vez e expoe /api/*.
+"""Aplicacao FastAPI: carrega o grafo uma vez e expoe /map/api/*.
 
-Se frontend/dist existir (npm run build), tambem serve o frontend em /.
+Se frontend/dist existir (npm run build), tambem serve o frontend em /map/.
+Tudo fica sob BASE_PATH para o app dividir o dominio com outros (a raiz e de
+outro app no EC2); quem estiver na frente so repassa /map/* sem mexer no caminho.
 """
 from __future__ import annotations
 
@@ -9,6 +11,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from ..navgraph import NavGraph
@@ -19,6 +22,8 @@ from .deps import AppState
 from .routers import airports, meta, network, notams, routes
 
 log = logging.getLogger("fmsnav")
+
+BASE_PATH = "/map"
 
 
 def create_app(settings: Settings | None = None, graph: NavGraph | None = None,
@@ -48,12 +53,19 @@ def create_app(settings: Settings | None = None, graph: NavGraph | None = None,
         if client:
             await client.aclose()
 
-    app = FastAPI(title="fmsnav", version="0.2.0", lifespan=lifespan)
+    app = FastAPI(title="fmsnav", version="0.2.0", lifespan=lifespan,
+                  docs_url=f"{BASE_PATH}/docs", redoc_url=None, openapi_url=f"{BASE_PATH}/openapi.json")
     app.add_middleware(CORSMiddleware, allow_origins=list(settings.cors_origins),
                        allow_methods=["*"], allow_headers=["*"])
     for r in (meta, airports, network, routes, notams):
-        app.include_router(r.router, prefix="/api")
+        app.include_router(r.router, prefix=f"{BASE_PATH}/api")
+
+    # rodando sozinho (dev, make serve), a raiz leva ao mapa
+    @app.get("/", include_in_schema=False)
+    @app.get(BASE_PATH, include_in_schema=False)
+    def _to_base():
+        return RedirectResponse(f"{BASE_PATH}/")
 
     if settings.frontend_dist.is_dir():
-        app.mount("/", StaticFiles(directory=settings.frontend_dist, html=True), name="frontend")
+        app.mount(BASE_PATH, StaticFiles(directory=settings.frontend_dist, html=True), name="frontend")
     return app

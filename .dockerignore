@@ -1,0 +1,13 @@
+.git
+**/.venv
+**/node_modules
+**/__pycache__
+**/.pytest_cache
+**/*.egg-info
+backend/build
+frontend/dist
+data
+docs
+fmsnav_export_9739
+*.html
+!frontend/index.html

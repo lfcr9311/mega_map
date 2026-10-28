@@ -119,3 +119,15 @@ def test_level_without_route_raises():
 def test_plan_level_low_with_procedures(graph):
     res = RoutePlanner(graph).plan(RouteRequest("AAAA", "BBBB", "09", "27", AUTO, AUTO, level="L"))
     assert [graph.idents[p] for p in res.points] == ["AAAA", "R1", "S1", "W1", "W4", "W5", "W3", "T1", "R2", "BBBB"]
+
+
+def test_airport_is_never_an_intermediate_point():
+    from conftest import EDGES, NODES, PROCS, RUNWAYS, _km
+    from fmsnav.navgraph import NavGraph
+    # CCCC em cima de W2, com conectores a W1 e W3: atalho que o roteador nao pode usar
+    nodes = NODES + [["CCCC", 0.0, 2.0, "A", "CCCC"]]
+    edges = [e for e in EDGES if e[3] != "UX1"] + [[11, 1, _km(1, 2), ""], [11, 3, _km(2, 3), ""]]
+    g = NavGraph({"n": nodes, "e": edges, "p": PROCS, "r": RUNWAYS})
+    assert [g.idents[i] for i in shortest_path(g, 0, 4).path] == ["AAAA", "W1", "W4", "W5", "W3", "BBBB"]
+    assert costs_from(g, 1, [3])[3] == pytest.approx(_km(1, 5) + _km(5, 6) + _km(6, 3))
+    assert shortest_path(g, 0, 11).path[-1] == 11       # como destino, vale

@@ -42,19 +42,30 @@ def to_legs(g: NavGraph, path: list[PathPoint], level: str | None = None) -> lis
 
 
 def resolve_refs(g: NavGraph, refs: list[schemas.PointRef]) -> list[PathPoint]:
-    """PointRef -> PathPoint. Ident ambiguo resolve pelo mais proximo do ponto anterior."""
+    """PointRef -> PathPoint. Ident ambiguo resolve pelo mais proximo do ponto anterior.
+
+    Aerodromo so vale nas pontas: no meio da rota, o ident resolve para um fixo
+    homonimo ou e recusado.
+    """
     out: list[PathPoint] = []
+    last = len(refs) - 1
     for k, r in enumerate(refs):
+        inner = 0 < k < last
         if r.id is not None:
             if not 0 <= r.id < len(g):
                 raise HTTPException(422, {"index": k, "message": f"id {r.id} fora do grafo."})
+            if inner and g.kinds[r.id] == "A":
+                raise HTTPException(422, {"index": k, "message": f"{g.idents[r.id]} é aeródromo, não fixo de rota."})
             out.append(r.id)
         elif r.lat is not None and r.lon is not None:
             out.append(VirtualPoint(r.ident or f"PT{k}", r.lat, r.lon))
         elif r.ident:
-            node = g.resolve_ident(r.ident, g.coord(out[-1]) if out else None)
+            ident = r.ident.strip().upper()
+            node = g.resolve_ident(ident, g.coord(out[-1]) if out else None, fixes_only=inner)
             if node is None:
-                raise HTTPException(422, {"index": k, "message": f'"{r.ident.strip().upper()}" não está no banco.'})
+                if inner and g.resolve_ident(ident) is not None:
+                    raise HTTPException(422, {"index": k, "message": f"{ident} é aeródromo, não fixo de rota."})
+                raise HTTPException(422, {"index": k, "message": f'"{ident}" não está no banco.'})
             out.append(node)
         else:
             raise HTTPException(422, {"index": k, "message": "ponto sem id, coordenada ou ident."})

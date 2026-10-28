@@ -1,0 +1,15 @@
+# fmsnav em 127.0.0.1:8001/map/ (a porta so abre para a propria maquina).
+# Quem atende a porta 80 do EC2 repassa /map/* para ca, sem mexer no caminho.
+services:
+  fmsnav:
+    build: .
+    image: fmsnav
+    restart: unless-stopped
+    environment:
+      # rpl_back (NOTAMs); vazio = sem desvio de NOTAM
+      FMSNAV_RPL_BACK_URL: ${FMSNAV_RPL_BACK_URL:-}
+      FMSNAV_DEMO_NOTAMS: ${FMSNAV_DEMO_NOTAMS:-0}
+    ports:
+      - "127.0.0.1:8001:8001"
+    volumes:
+      - ./data/build:/data:ro

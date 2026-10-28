@@ -176,9 +176,15 @@ class NavGraph:
 
     # ------------------------------------------------------------ busca
 
-    def resolve_ident(self, ident: str, near: LatLon | None = None) -> int | None:
-        """No pelo ident; com idents repetidos, o mais proximo de `near`."""
+    def resolve_ident(self, ident: str, near: LatLon | None = None,
+                      fixes_only: bool = False) -> int | None:
+        """No pelo ident; com idents repetidos, o mais proximo de `near`.
+
+        `fixes_only` ignora aerodromos (ponto no meio da rota).
+        """
         cands = self._by_name.get(ident.strip().upper())
+        if cands and fixes_only:
+            cands = [c for c in cands if self.kinds[c] != "A"]
         if not cands:
             return None
         if len(cands) == 1 or near is None:

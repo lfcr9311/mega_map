@@ -2,6 +2,7 @@
 backend/.venv/
 __pycache__/
 *.egg-info/
+backend/build/
 .pytest_cache/
 
 # node

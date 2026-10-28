@@ -3,7 +3,7 @@ import type {
   Procedure, RouteIn, RouteOut, SpecialArea,
 } from './types';
 
-const BASE = import.meta.env.VITE_API_BASE ?? '/api';
+const BASE = import.meta.env.VITE_API_BASE ?? `${import.meta.env.BASE_URL}api`;
 
 export class ApiError extends Error {
   constructor(
