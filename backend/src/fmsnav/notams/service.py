@@ -40,13 +40,14 @@ class NotamService:
         self.ttl_s = ttl_s
         self.demo = demo
         self._areas: list[NotamArea] = []
-        self._fetched_at = 0.0
+        # None = nunca buscou (monotonic conta desde o boot: 0.0 pareceria recente)
+        self._fetched_at: float | None = None
         self._lock = asyncio.Lock()
         self._avoidance: tuple[int, int, Avoidance] | None = None   # (id(areas), id(graph), ctx)
 
     async def areas(self) -> list[NotamArea]:
         async with self._lock:
-            if time.monotonic() - self._fetched_at > self.ttl_s:
+            if self._fetched_at is None or time.monotonic() - self._fetched_at > self.ttl_s:
                 self._areas = await self._fetch()
                 self._fetched_at = time.monotonic()
             return self._areas

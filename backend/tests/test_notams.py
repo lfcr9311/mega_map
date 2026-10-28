@@ -43,3 +43,10 @@ def test_service_tolerates_failing_icao(graph):
 def test_demo_only_when_enabled():
     assert asyncio.run(NotamService(None, (), 60, 300).areas()) == []
     assert len(asyncio.run(NotamService(None, (), 60, 300, demo=True).areas())) == 2
+
+
+def test_first_fetch_right_after_boot(monkeypatch):
+    # monotonic conta desde o boot; num runner recem-ligado ele e menor que o TTL
+    import fmsnav.notams.service as service
+    monkeypatch.setattr(service.time, "monotonic", lambda: 10.0)
+    assert len(asyncio.run(NotamService(None, (), 60, 300, demo=True).areas())) == 2
