@@ -18,7 +18,8 @@ Pré-requisitos: Python ≥ 3.11 e Node ≥ 20.
 
 ```bash
 make install        # venv + npm install
-make data           # decodifica data/cycles/2607/FMS_ciclo.zip -> data/build/ (~50 s)
+make data           # decodifica data/cycles/2610/FMS_ciclo.zip -> data/build/ (~50 s)
+                    #   + sentido das aerovias da eAIP do DECEA (1a vez baixa, ~1 min)
 make serve          # compila o frontend e sobe tudo em http://127.0.0.1:8001/map/
 ```
 

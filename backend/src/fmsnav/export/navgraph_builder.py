@@ -3,10 +3,11 @@
 Formato (JSON gzipado, lido por fmsnav.navgraph.NavGraph):
 
     { "format": 1,
-      "meta":  { "cycle", "area", "built_at" },
+      "meta":  { "cycle", "area", "built_at", "directions" },
       "graph": {
         "n": nodes,   # [ident, lat, lon, kind, name]   kind: W=aerovia A=aeroporto P=procedimento
-        "e": edges,   # [a, b, km, airway]               (a,b = indices em n; airway "" = conector)
+        "e": edges,   # [a, b, km, airway, sentido]      (a,b = indices em n; airway "" = conector;
+                      #   sentido "" = mao dupla, ">" so a->b, "<" so b->a — da eAIP, export.directions)
         "p": procs,   # { icao: [[kind, name, transition, pts], ...] }   kind: S=SID T=STAR A=APPR
                       #   pts = [[node, path_term, altitude_ft, alt_desc], ...]
         "r": rwys }}  # { icao: [[bearing, length_ft, elevation_ft], ...] }
@@ -114,13 +115,15 @@ def _area_box(airports, keep):
             min(p[1] for p in pts) - m, max(p[1] for p in pts) + m)
 
 
-def write_navgraph(graph: dict, path: Path, cycle: str, areas: tuple[str, ...] | None) -> dict:
+def write_navgraph(graph: dict, path: Path, cycle: str, areas: tuple[str, ...] | None,
+                   directions: dict | None = None) -> dict:
     doc = {
         "format": FORMAT_VERSION,
         "meta": {
             "cycle": cycle,
             "area": list(areas) if areas else None,
             "built_at": datetime.now(timezone.utc).isoformat(timespec="seconds"),
+            "directions": directions,
         },
         "graph": graph,
     }

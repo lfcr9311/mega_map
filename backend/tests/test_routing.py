@@ -89,7 +89,9 @@ def test_avoidance_escape_coordinate_when_no_airway_detour(graph):
 
 def test_real_graph_sbgr_sbbr(real_graph):
     res = RoutePlanner(real_graph).plan(RouteRequest("SBGR", "SBBR"))
-    assert 850 < res.km < 1000
+    # com o sentido da eAIP, sobe pelo corredor de ida (UZ92/Z35/Z41, ~1020 km); sem ele
+    # descia na contramao pelo de volta (Z82/Z5/UZ2, ~890 km)
+    assert 850 < res.km < 1100
     assert real_graph.ident(res.points[0]) == "SBGR" and real_graph.ident(res.points[-1]) == "SBBR"
 
 

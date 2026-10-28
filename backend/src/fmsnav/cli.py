@@ -7,8 +7,10 @@ import logging
 
 def _build(a: argparse.Namespace) -> None:
     from .pipeline import build
+    from pathlib import Path
+    aip_cache = None if a.no_aip else (a.aip_cache or Path(a.zip).resolve().parent / "eaip")
     build(a.zip, out=a.out, cycle=a.cycle,
-          area=a.area.split(",") if a.area else None, write_json=not a.no_json)
+          area=a.area.split(",") if a.area else None, write_json=not a.no_json, aip_cache=aip_cache)
 
 
 def _serve(a: argparse.Namespace) -> None:
@@ -50,6 +52,9 @@ def main() -> None:
     b.add_argument("--out", default="data/build", help="diretorio de saida (default data/build)")
     b.add_argument("--area", help="prefixo(s) ICAO separados por virgula, ex.: SB")
     b.add_argument("--no-json", action="store_true", help="nao gravar db/*.json por parametro")
+    b.add_argument("--no-aip", action="store_true",
+                   help="sem sentido das aerovias (a eAIP do DECEA e a fonte; o banco do FMS nao tem)")
+    b.add_argument("--aip-cache", help="cache da eAIP (default: pasta eaip/ ao lado do zip)")
     b.set_defaults(fn=_build)
 
     s = sub.add_parser("serve", help="sobe a API (e o frontend, se compilado)")

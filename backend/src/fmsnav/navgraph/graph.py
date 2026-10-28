@@ -97,10 +97,14 @@ class NavGraph:
         self._airways: dict[tuple[int, int], list[str]] = defaultdict(list)
         seen: set[tuple[int, int]] = set()
         self.edges: list[tuple[int, int]] = []        # sem duplicatas, para desenho
-        for a, b, km, aw in graph["e"]:
+        # sentido (5o campo, da eAIP): "" mao dupla, ">" so a->b, "<" so b->a
+        for a, b, km, aw, *rest in graph["e"]:
             lvl = airway_level(aw)
-            self.adj[a].append((b, km, lvl))
-            self.adj[b].append((a, km, lvl))
+            way = rest[0] if rest else ""
+            if way != "<":
+                self.adj[a].append((b, km, lvl))
+            if way != ">":
+                self.adj[b].append((a, km, lvl))
             key = (a, b) if a < b else (b, a)
             if aw:
                 self._airways[key].append(aw)

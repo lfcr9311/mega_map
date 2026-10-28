@@ -21,10 +21,15 @@
 Decodificar o binário é lento (~50 s para o mundo), então acontece **uma vez por ciclo**
 (`fmsnav build`) e produz um grafo compilado. A API só carrega esse grafo.
 
+O banco do FMS não traz o sentido das aerovias (docs/DOCUMENTACAO_COMPLETA.md §4.5). O
+build baixa a ENR 3.2 da eAIP do DECEA, na emenda em vigor na data do ciclo, e grava o
+sentido em cada perna do grafo. A primeira vez precisa de internet (~1 min); depois fica em
+cache em `data/cycles/<ciclo>/eaip/`. `--no-aip` desliga (todas as aerovias de mão dupla).
+
 ## Backend (`backend/src/fmsnav/`)
 
 Dependências apontam sempre para baixo: `api → routing/notams → navgraph → geo`;
-`export → decode → domain`.
+`export → decode → domain`; `export → aip`.
 
 | módulo | responsabilidade |
 |---|---|
@@ -35,6 +40,8 @@ Dependências apontam sempre para baixo: `api → routing/notams → navgraph �
 | `export/extractors.py` | um extrator por parâmetro (`EXTRACTORS`) |
 | `export/json_export.py` | `db/<param>.json` |
 | `export/navgraph_builder.py` | grafo compacto `{n,e,p,r}` + conectores terminais |
+| `aip/eaip.py` | eAIP DECEA: data do ciclo AIRAC, emenda em vigor, leitura do sentido na ENR 3.2 |
+| `export/directions.py` | marca as pernas de sentido único no grafo (`">"`/`"<"`) |
 | `pipeline.py` | orquestra o build |
 | `navgraph/graph.py` | `NavGraph`: adjacência, aerovia por perna, busca por ident/ICAO, índice espacial (grade de 1°), `VirtualPoint` |
 | `routing/astar.py` | A* (heurística great-circle) e Dijkstra multi-alvo |
@@ -50,6 +57,7 @@ Dependências apontam sempre para baixo: `api → routing/notams → navgraph �
 1. Resolve origem/destino; rota base por A* (nós em área de NOTAM custam ×10 000).
    Com `level` = `H`/`L`, o A* só anda por aerovias de alta/baixa — alta é todo designador
    que começa com `U` (`navgraph.airway_level`); conectores aeroporto↔malha valem sempre.
+   Pernas de sentido único (da eAIP) só entram na adjacência no sentido permitido.
    Aeródromos só entram como origem/destino: o A* nunca passa por outro aeródromo, e na
    edição um ident de aeródromo no meio da rota resolve para o fixo homônimo ou dá 422.
 2. SID/STAR: chave explícita, `"auto"` ou nenhuma. Em `"auto"`, as opções são filtradas

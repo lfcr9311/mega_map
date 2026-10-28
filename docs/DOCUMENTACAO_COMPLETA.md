@@ -220,6 +220,38 @@ gigante no mapa) sem remover pernas continentais legítimas (as maiores ficam
 - resíduo de 8,5% = fixos de fronteira de FIR (sufixo `...C`) e diferenças de
   direção — não são DCTs falsos
 
+### 4.5 Sentido das aerovias: não está no banco; vem da eAIP
+
+Testado nos ciclos 2607 e 2610 contra a ENR 3.2 da AIP Brasil (gabarito: 3246
+trechos cruzados perna a perna). Pela AIP, 2097 são de mão dupla e 1149 de
+sentido único — 881 gravados na Thales no sentido permitido e 268 ao contrário
+(ex.: UN866 gravada TENPA→EDNES, permitida só EDNES→EKERA). O que cada campo é:
+
+| campo | significado | separa o sentido? |
+|---|---|---|
+| `AWY_SEQ` bits 25–26 e 27–28 | tipo de RNP da perna que chega no fixo (0 convencional, 1 continental, 2 oceânico) | não |
+| `AWY_SEQ` bit 18 | último fixo da corrida (bate nos 7010 registros) | não |
+| `AWY_SEQ` bits 19–20 | propriedade do fixo; bit 20 ≈ RNAV | não |
+| `AIRWAY.S01` nome & 3 | nível H/L/B | não |
+| `LK_FX_AW.S01` | (fixo, registro da aerovia + 1) — índice | não |
+| `LKA_WPTE`/`LKA_WPTT` | permutações exatas de 1..N (índices de ordenação) | não |
+| `FIX_INFO.S01` | 99,5% dos ponteiros fora das tabelas de fixo; só 116 tocam fixos de aerovia | não |
+
+Prova: 1764 pernas com **todos os 64 bits** das duas entradas iguais
+(`0x0a100000`/`0x0a100000`, nível 0) têm os três casos (1165 / 477 / 122), então
+nenhuma codificação nesses arquivos pode carregar o sentido. O `STANDARD.HD`
+lista todos os arquivos do zip, sem nenhum faltando. Leitura provável: o FMS voa
+a aerovia que o piloto escolhe e não precisa da restrição.
+
+Por isso o sentido vem da eAIP (`fmsnav.aip`, aplicado em
+`export.directions`): coluna "Direção do nível de cruzeiro" da ENR 3.2, uma seta
+por paridade (Ímpar | Par; `↓` sentido da tabela, `↑` contrário, `x` nenhum;
+célula única com `colspan=2` vale para as duas). Sentido único = só uma direção
+aparece. No 2610: 3650 trechos, 1454 de sentido único, 210 sem perna no grafo —
+139 cortados pela guarda de 300 km (§4.3; a AIP confirma que são reais, ex.:
+UN866 ORUTA–ARTIG 361 km) e 71 que não existem no binário (rotas KZ de
+helicóptero, fixos diferentes). Cobre só o espaço aéreo brasileiro.
+
 ---
 
 ## 5. Procedimentos (SID / STAR / Aproximação)

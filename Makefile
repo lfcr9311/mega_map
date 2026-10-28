@@ -1,4 +1,4 @@
-CYCLE ?= 2607
+CYCLE ?= 2610
 ZIP   ?= data/cycles/$(CYCLE)/FMS_ciclo.zip
 PY    := backend/.venv/bin
 
